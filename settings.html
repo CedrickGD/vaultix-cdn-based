@@ -1,77 +1,585 @@
-
+<!-- settings.html - Modern Settings Page -->
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <title>Vaultix Settings</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <style>
-    body {
+    :root {
+      --primary-dark: #2b0f54;
+      --primary: #480ca8;
+      --primary-light: #4361ee;
+      --accent: #7209b7;
+      --accent-hover: #5f0f40;
+      --text-light: #f8f9fa;
+      --bg-dark: #0d0221;
+      --bg-card: rgba(255, 255, 255, 0.08);
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      box-sizing: border-box;
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #3a0ca3, #4361ee);
-      color: white;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, var(--bg-dark), var(--primary-dark));
+      color: var(--text-light);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .app-container {
       display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 40px;
       min-height: 100vh;
     }
-    .card {
-      background: rgba(255, 255, 255, 0.08);
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-      width: 100%;
-      max-width: 500px;
-      backdrop-filter: blur(8px);
+
+    /* Navbar Styles */
+    .navbar {
+      width: 280px;
+      background: linear-gradient(180deg, var(--primary-dark), var(--primary));
+      padding: 2rem 1rem;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+      position: fixed;
+      height: 100vh;
+      z-index: 100;
     }
-    input, button {
-      padding: 12px;
-      margin-top: 12px;
-      width: 100%;
-      font-size: 1em;
-      border-radius: 8px;
-      border: none;
-      outline: none;
+
+    .navbar-logo {
+      font-size: 1.8rem;
+      font-weight: bold;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
-    input {
-      background: white;
-      color: black;
+
+    .nav-links {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: auto;
     }
-    button {
-      background: #7209b7;
-      color: white;
+
+    .nav-item {
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
       cursor: pointer;
-      transition: background 0.3s ease;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
     }
-    button:hover {
-      background: #5f0f40;
+
+    .nav-item:hover,
+    .nav-item.active {
+      background: rgba(255, 255, 255, 0.1);
     }
-    #msg {
-      margin-top: 10px;
-      color: #ccffcc;
+
+    .nav-item i {
+      width: 24px;
+      text-align: center;
+    }
+
+    .user-section {
+      margin-top: auto;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      margin-left: 280px;
+      padding: 2rem;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-weight: 600;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
+    }
+
+    /* Card & Form Styles */
+    .card {
+      background: var(--bg-card);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      transition: var(--transition);
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Input & Button Styles */
+    input,
+    select {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-light);
+      font-size: 1rem;
+      transition: var(--transition);
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--primary-light);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-weight: 500;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .btn:hover {
+      background: var(--accent-hover);
+      transform: translateY(-2px);
+    }
+
+    .btn-block {
+      width: 100%;
+    }
+
+    /* Toggle Switch */
+    .toggle-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .toggle-wrapper:last-child {
+      border-bottom: none;
+    }
+
+    .toggle-label {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .toggle-label small {
+      opacity: 0.7;
+      font-size: 0.85rem;
+    }
+
+    .toggle {
+      position: relative;
+      display: inline-block;
+      width: 52px;
+      height: 28px;
+    }
+
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(255, 255, 255, 0.1);
+      transition: .4s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked+.slider {
+      background-color: var(--primary-light);
+    }
+
+    input:focus+.slider {
+      box-shadow: 0 0 1px var(--primary-light);
+    }
+
+    input:checked+.slider:before {
+      transform: translateX(24px);
+    }
+
+    /* Password Strength Meter */
+    .password-strength {
+      margin-top: 0.5rem;
+    }
+
+    .strength-meter {
+      height: 5px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      margin-top: 0.5rem;
+      overflow: hidden;
+    }
+
+    .strength-meter-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.5s ease, background 0.5s ease;
+      width: 0%;
+    }
+
+    .strength-text {
+      font-size: 0.8rem;
+      margin-top: 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--primary);
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      z-index: 1000;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Responsive styles */
+    @media (max-width: 768px) {
+      .navbar {
+        width: 80px;
+        padding: 1rem 0.5rem;
+      }
+
+      .navbar-logo span,
+      .nav-item span {
+        display: none;
+      }
+
+      .main-content {
+        margin-left: 80px;
+        padding: 1rem;
+      }
     }
   </style>
 </head>
+
 <body>
-  <div class="card">
-    <h2>⚙️ Vaultix Settings</h2>
-    <label><input type="checkbox" id="tray" /> Enable Tray Icon</label><br />
-    <label><input type="checkbox" id="autostart" /> Enable Auto-Start</label><br />
-    <input type="password" id="newpass" placeholder="Change Master Password" />
-    <button onclick="save()">💾 Save Settings</button>
-    <p id="msg"></p>
+  <div class="app-container">
+    <nav class="navbar">
+      <div class="navbar-logo">
+        <i class="fas fa-shield-alt"></i>
+        <span>Vaultix</span>
+      </div>
+      <div class="nav-links">
+        <div class="nav-item" onclick="goBack()">
+          <i class="fas fa-arrow-left"></i>
+          <span>Back to Dashboard</span>
+        </div>
+        <div class="nav-item active">
+          <i class="fas fa-cog"></i>
+          <span>Settings</span>
+        </div>
+      </div>
+      <div class="user-section">
+        <div class="nav-item">
+          <i class="fas fa-user-circle"></i>
+          <span>Admin</span>
+        </div>
+      </div>
+    </nav>
+
+    <div class="main-content">
+      <div class="header">
+        <h1>Settings</h1>
+      </div>
+
+      <div class="card">
+        <h2>Security</h2>
+
+        <div class="section" style="margin-top: 1rem;">
+          <label>Master Password</label>
+          <input type="password" id="newpass" placeholder="Change Master Password" style="margin-top: 0.5rem;" />
+
+          <div class="password-strength">
+            <div class="strength-meter">
+              <div class="strength-meter-fill" id="passwordStrength"></div>
+            </div>
+            <div class="strength-text" id="strengthText">
+              <i class="fas fa-info-circle"></i>
+              <span>Enter a new password to change it</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Application Settings</h2>
+
+        <div class="toggle-wrapper">
+          <div class="toggle-label">
+            <span>Enable Tray Icon</span>
+            <small>Keep Vaultix in your system tray when minimized</small>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="tray">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-wrapper">
+          <div class="toggle-label">
+            <span>Auto-Start</span>
+            <small>Launch Vaultix when system starts</small>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="autostart">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-wrapper">
+          <div class="toggle-label">
+            <span>Auto-Lock</span>
+            <small>Lock Vaultix after 5 minutes of inactivity</small>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="autolock" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-wrapper">
+          <div class="toggle-label">
+            <span>Dark Mode</span>
+            <small>Use dark color scheme</small>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="darkmode" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Advanced</h2>
+
+        <div class="toggle-wrapper">
+          <div class="toggle-label">
+            <span>Password Generator</span>
+            <small>Configure default password generation settings</small>
+          </div>
+          <button class="btn" onclick="openPasswordSettings()">
+            <i class="fas fa-sliders-h"></i>
+            Configure
+          </button>
+        </div>
+
+        <div class="toggle-wrapper">
+          <div class="toggle-label">
+            <span>Backup Database</span>
+            <small>Create an encrypted backup of your data</small>
+          </div>
+          <button class="btn" onclick="backupDatabase()">
+            <i class="fas fa-download"></i>
+            Backup
+          </button>
+        </div>
+      </div>
+
+      <button class="btn btn-block" onclick="save()" style="margin-top: 1rem;">
+        <i class="fas fa-save"></i>
+        Save Settings
+      </button>
+    </div>
   </div>
+
+  <div class="toast" id="toast">
+    <i class="fas fa-check-circle"></i>
+    <span id="toastMessage">Settings saved successfully!</span>
+  </div>
+
   <script>
+    // Password strength meter
+    const passwordInput = document.getElementById('newpass');
+    const strengthMeter = document.getElementById('passwordStrength');
+    const strengthText = document.getElementById('strengthText');
+
+    passwordInput.addEventListener('input', updateStrength);
+
+    function updateStrength() {
+      const password = passwordInput.value;
+
+      if (!password) {
+        strengthMeter.style.width = '0%';
+        strengthMeter.style.background = '#e9ecef';
+        strengthText.innerHTML = '<i class="fas fa-info-circle"></i><span>Enter a new password to change it</span>';
+        return;
+      }
+
+      // Calculate password strength
+      let strength = 0;
+      let feedback = '';
+
+      // Length check
+      if (password.length > 7) strength += 25;
+
+      // Character variety checks
+      if (/[A-Z]/.test(password)) strength += 25;
+      if (/[0-9]/.test(password)) strength += 25;
+      if (/[^A-Za-z0-9]/.test(password)) strength += 25;
+
+      // Set the appropriate color and message
+      let strengthColor = '';
+
+      if (strength <= 25) {
+        strengthColor = '#dc3545'; // Red - weak
+        feedback = '<i class="fas fa-exclamation-triangle"></i><span>Weak password</span>';
+      } else if (strength <= 50) {
+        strengthColor = '#ffc107'; // Yellow - fair
+        feedback = '<i class="fas fa-info-circle"></i><span>Fair password</span>';
+      } else if (strength <= 75) {
+        strengthColor = '#0dcaf0'; // Blue - good
+        feedback = '<i class="fas fa-thumbs-up"></i><span>Good password</span>';
+      } else {
+        strengthColor = '#198754'; // Green - strong
+        feedback = '<i class="fas fa-shield-alt"></i><span>Strong password</span>';
+      }
+
+      strengthMeter.style.width = strength + '%';
+      strengthMeter.style.background = strengthColor;
+      strengthText.innerHTML = feedback;
+    }
+
+    // Toast notification
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      const toastMessage = document.getElementById('toastMessage');
+
+      toastMessage.textContent = message;
+      toast.classList.add('show');
+
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    // Save settings
     async function save() {
-      const tray = document.getElementById("tray").checked;
-      const auto = document.getElementById("autostart").checked;
-      const pw = document.getElementById("newpass").value;
-      if (pw) await pywebview.api.change_password(pw);
-      await pywebview.api.set_tray(tray);
-      await pywebview.api.set_autostart(auto);
-      document.getElementById("msg").innerText = "Preferences saved!";
+      try {
+        const tray = document.getElementById("tray").checked;
+        const autoStart = document.getElementById("autostart").checked;
+        const autoLock = document.getElementById("autolock").checked;
+        const darkMode = document.getElementById("darkmode").checked;
+        const newPassword = document.getElementById("newpass").value;
+
+        // Settings that exist in the original app
+        if (tray !== undefined) await pywebview.api.set_tray(tray);
+        if (autoStart !== undefined) await pywebview.api.set_autostart(autoStart);
+
+        // Change password if provided
+        if (newPassword) {
+          const success = await pywebview.api.change_password(newPassword);
+          if (success) {
+            showToast("Password changed successfully!");
+            document.getElementById("newpass").value = "";
+            strengthMeter.style.width = '0%';
+            strengthText.innerHTML = '<i class="fas fa-info-circle"></i><span>Enter a new password to change it</span>';
+          } else {
+            showToast("Failed to change password");
+            return;
+          }
+        }
+
+        showToast("Settings saved successfully!");
+      } catch (error) {
+        showToast("Error saving settings");
+        console.error(error);
+      }
+    }
+
+    // Navigation
+    function goBack() {
+      const htmlPath = "index.html";
+      pywebview.api.load_main();
+    }
+
+    // Placeholder functions
+    function openPasswordSettings() {
+      showToast("Password generator settings (placeholder)");
+    }
+
+    function backupDatabase() {
+      showToast("Database backup initiated (placeholder)");
     }
   </script>
 </body>
+
 </html>

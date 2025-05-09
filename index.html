@@ -1,143 +1,672 @@
-
+<!-- index.html - Fixed Dashboard -->
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <title>Vaultix Dashboard</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <style>
-    body {
+    :root {
+      --primary-dark: #2b0f54;
+      --primary: #480ca8;
+      --primary-light: #4361ee;
+      --accent: #7209b7;
+      --accent-hover: #5f0f40;
+      --text-light: #f8f9fa;
+      --bg-dark: #0d0221;
+      --bg-card: rgba(255, 255, 255, 0.08);
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      box-sizing: border-box;
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #3a0ca3, #4361ee);
-      color: white;
-      padding: 20px;
+      padding: 0;
     }
-    h2 {
-      font-size: 2em;
+
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, var(--bg-dark), var(--primary-dark));
+      color: var(--text-light);
+      min-height: 100vh;
+      line-height: 1.6;
     }
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
+
+    .app-container {
+      display: flex;
+      min-height: 100vh;
     }
-    .account, form {
-      background: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(8px);
-      padding: 20px;
-      border-radius: 16px;
-      margin: 20px 0;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+
+    /* Navbar Styles */
+    .navbar {
+      width: 280px;
+      background: linear-gradient(180deg, var(--primary-dark), var(--primary));
+      padding: 2rem 1rem;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+      position: fixed;
+      height: 100vh;
+      z-index: 100;
     }
-    input, button {
-      padding: 10px;
-      margin: 5px;
-      font-size: 1em;
-      border-radius: 8px;
-      border: none;
+
+    .navbar-logo {
+      font-size: 1.8rem;
+      font-weight: bold;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
-    input[type="text"], input[type="file"] {
-      width: calc(33% - 20px);
+
+    .nav-links {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: auto;
     }
-    button {
-      background-color: #7209b7;
-      color: white;
+
+    .nav-item {
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
       cursor: pointer;
-      transition: background 0.3s ease;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
     }
-    button:hover {
-      background-color: #5f0f40;
+
+    .nav-item:hover,
+    .nav-item.active {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-item i {
+      width: 24px;
+      text-align: center;
+    }
+
+    .user-section {
+      margin-top: auto;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      margin-left: 280px;
+      padding: 2rem;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-weight: 600;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
+    }
+
+    /* Card & Form Styles */
+    .card {
+      background: var(--bg-card);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      transition: var(--transition);
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .account-form {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+
+    .form-full {
+      grid-column: span 3;
+    }
+
+    /* Input & Button Styles */
+    input,
+    select {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-light);
+      font-size: 1rem;
+      transition: var(--transition);
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--primary-light);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-weight: 500;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .btn:hover {
+      background: var(--accent-hover);
+      transform: translateY(-2px);
+    }
+
+    .btn-block {
+      width: 100%;
+    }
+
+    .btn-sm {
+      padding: 8px 12px;
+      font-size: 0.9rem;
+    }
+
+    .btn-icon {
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Search & Filter Area */
+    .search-area {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .search-input {
+      flex: 1;
+      position: relative;
+    }
+
+    .search-input i {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .search-input input {
+      padding-left: 45px;
+    }
+
+    /* Account Item */
+    .account-item {
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .account-details {
+      flex: 1;
+    }
+
+    .account-name {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .account-meta {
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .account-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .empty-state i {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.3;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--primary);
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      z-index: 1000;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Responsive styles */
+    @media (max-width: 768px) {
+      .navbar {
+        width: 80px;
+        padding: 1rem 0.5rem;
+      }
+
+      .navbar-logo span,
+      .nav-item span {
+        display: none;
+      }
+
+      .main-content {
+        margin-left: 80px;
+        padding: 1rem;
+      }
+
+      .account-form {
+        grid-template-columns: 1fr;
+      }
+
+      .form-full {
+        grid-column: span 1;
+      }
     }
   </style>
 </head>
+
 <body>
-  <div class="container">
-    <h2>🔐 Vaultix Dashboard</h2>
-    <div id="root"></div>
-  </div>
+  <div id="root"></div>
   <script>
     const App = () => {
+      const [activeView, setActiveView] = React.useState('dashboard');
       const [accounts, setAccounts] = React.useState([]);
       const [search, setSearch] = React.useState("");
-      const [newAccount, setNewAccount] = React.useState({ name: "", email: "", website: "" });
+      const [newAccount, setNewAccount] = React.useState({
+        name: "",
+        email: "",
+        website: "",
+        username: "",
+        password: "",
+        notes: ""
+      });
+      const [toast, setToast] = React.useState({ message: '', visible: false });
+      const [showPassword, setShowPassword] = React.useState({});
 
       React.useEffect(() => {
-        (async () => {
-          const data = await pywebview.api.get_data();
-          setAccounts(data);
-        })();
+        loadData();
       }, []);
 
-      const filtered = accounts.filter(a => a.name.toLowerCase().includes(search.toLowerCase()));
-
-      const handleAdd = () => {
-        if (newAccount.name) {
-          setAccounts([...accounts, newAccount]);
-          setNewAccount({ name: "", email: "", website: "" });
+      const loadData = async () => {
+        try {
+          const data = await pywebview.api.get_data();
+          setAccounts(data);
+        } catch (error) {
+          showToast('Error loading data');
         }
       };
 
-      const handleDelete = (index) => {
+      const showToast = (message) => {
+        setToast({ message, visible: true });
+        setTimeout(() => setToast({ message: '', visible: false }), 3000);
+      };
+
+      const togglePasswordVisibility = (id) => {
+        setShowPassword(prev => ({
+          ...prev,
+          [id]: !prev[id]
+        }));
+      };
+
+      const handleAdd = async (e) => {
+        e.preventDefault();
+        if (newAccount.name && newAccount.website) {
+          const updatedAccounts = [...accounts, { ...newAccount, id: Date.now() }];
+          setAccounts(updatedAccounts);
+          await pywebview.api.set_data(updatedAccounts);
+          await pywebview.api.save_data();
+          setNewAccount({
+            name: "",
+            email: "",
+            website: "",
+            username: "",
+            password: "",
+            notes: ""
+          });
+          showToast('Account added successfully');
+        }
+      };
+
+      const handleDelete = async (index) => {
         const updated = [...accounts];
         updated.splice(index, 1);
         setAccounts(updated);
+        await pywebview.api.set_data(updated);
+        await pywebview.api.save_data();
+        showToast('Account deleted');
       };
 
       const handleSave = async () => {
         await pywebview.api.set_data(accounts);
-        await pywebview.api.save_data();
-        alert("Changes saved.");
+        const saved = await pywebview.api.save_data();
+        if (saved) {
+          showToast('All changes saved');
+        } else {
+          showToast('Error saving changes');
+        }
       };
 
       const handleImport = async (e) => {
         const file = e.target.files[0];
+        if (!file) return;
+
         const reader = new FileReader();
         reader.onload = async () => {
-          await pywebview.api.import_data(reader.result);
-          const updated = await pywebview.api.get_data();
-          setAccounts(updated);
+          try {
+            const success = await pywebview.api.import_data(reader.result);
+            if (success) {
+              const updated = await pywebview.api.get_data();
+              setAccounts(updated);
+              showToast('Data imported successfully');
+            } else {
+              showToast('Import failed. Invalid format');
+            }
+          } catch (error) {
+            showToast('Error importing data');
+          }
         };
         reader.readAsText(file);
       };
 
-      return React.createElement("div", null,
-        React.createElement("button", { onClick: () => pywebview.api.open_settings() }, "⚙️ Settings"),
-        React.createElement("input", {
-          type: "file", accept: ".json", onChange: handleImport
-        }),
-        React.createElement("input", {
-          type: "text", placeholder: "Search...", value: search,
-          onChange: e => setSearch(e.target.value)
-        }),
-        React.createElement("form", { onSubmit: e => { e.preventDefault(); handleAdd(); }},
-          React.createElement("input", {
-            placeholder: "Name", value: newAccount.name,
-            onChange: e => setNewAccount({ ...newAccount, name: e.target.value })
-          }),
-          React.createElement("input", {
-            placeholder: "Email", value: newAccount.email,
-            onChange: e => setNewAccount({ ...newAccount, email: e.target.value })
-          }),
-          React.createElement("input", {
-            placeholder: "Website", value: newAccount.website,
-            onChange: e => setNewAccount({ ...newAccount, website: e.target.value })
-          }),
-          React.createElement("button", { type: "submit" }, "➕ Add")
-        ),
-        filtered.map((acc, i) =>
-          React.createElement("div", { className: "account", key: i },
-            React.createElement("strong", null, acc.name),
-            React.createElement("div", null, "Email: " + acc.email),
-            React.createElement("div", null, "Website: " + acc.website),
-            React.createElement("button", { onClick: () => handleDelete(i) }, "🗑 Delete")
+      const exportData = () => {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(accounts));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "vaultix_export.json");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+        showToast('Data exported');
+      };
+
+      const openSettings = () => {
+        pywebview.api.open_settings();
+      };
+
+      const filtered = accounts.filter(a =>
+        a.name?.toLowerCase().includes(search.toLowerCase()) ||
+        a.email?.toLowerCase().includes(search.toLowerCase()) ||
+        a.website?.toLowerCase().includes(search.toLowerCase())
+      );
+
+      // Views
+      const DashboardView = () => (
+        <>
+          <div className="header">
+            <h1>Dashboard</h1>
+            <button className="btn" onClick={handleSave}>
+              <i className="fas fa-save"></i> Save All Changes
+            </button>
+          </div>
+
+          <div className="search-area">
+            <div className="search-input">
+              <i className="fas fa-search"></i>
+              <input
+                type="text"
+                placeholder="Search accounts..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+            </div>
+            <button className="btn">
+              <i className="fas fa-filter"></i> Filter
+            </button>
+          </div>
+
+          <div className="card">
+            <h2>Add New Account</h2>
+            <form className="account-form" onSubmit={handleAdd}>
+              <div>
+                <input
+                  placeholder="Site/App Name"
+                  value={newAccount.name}
+                  onChange={e => setNewAccount({ ...newAccount, name: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <input
+                  placeholder="Website URL"
+                  value={newAccount.website}
+                  onChange={e => setNewAccount({ ...newAccount, website: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <input
+                  placeholder="Email"
+                  type="email"
+                  value={newAccount.email}
+                  onChange={e => setNewAccount({ ...newAccount, email: e.target.value })}
+                />
+              </div>
+              <div>
+                <input
+                  placeholder="Username"
+                  value={newAccount.username}
+                  onChange={e => setNewAccount({ ...newAccount, username: e.target.value })}
+                />
+              </div>
+              <div>
+                <input
+                  placeholder="Password"
+                  type="password"
+                  value={newAccount.password}
+                  onChange={e => setNewAccount({ ...newAccount, password: e.target.value })}
+                />
+              </div>
+              <div className="form-full">
+                <button type="submit" className="btn btn-block">
+                  <i className="fas fa-plus-circle"></i> Add Account
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <h2>Stored Accounts ({filtered.length})</h2>
+
+          {filtered.length > 0 ? (
+            filtered.map((acc, i) => (
+              <div className="card account-item" key={i}>
+                <div className="account-details">
+                  <div className="account-name">{acc.name}</div>
+                  <div className="account-meta">
+                    {acc.email && <div><i className="fas fa-envelope"></i> {acc.email}</div>}
+                    {acc.website && <div><i className="fas fa-globe"></i> {acc.website}</div>}
+                    {acc.username && <div><i className="fas fa-user"></i> {acc.username}</div>}
+                    {acc.password && (
+                      <div>
+                        <i className="fas fa-key"></i>
+                        {showPassword[i] ? acc.password : '••••••••'}
+                        <button
+                          className="btn btn-sm"
+                          onClick={() => togglePasswordVisibility(i)}
+                          style={{ marginLeft: '10px' }}
+                        >
+                          <i className={`fas ${showPassword[i] ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="account-actions">
+                  <button className="btn btn-icon" title="Edit">
+                    <i className="fas fa-pencil-alt"></i>
+                  </button>
+                  <button
+                    className="btn btn-icon"
+                    onClick={() => handleDelete(i)}
+                    title="Delete"
+                  >
+                    <i className="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="empty-state">
+              <i className="fas fa-box-open"></i>
+              <h3>No accounts found</h3>
+              <p>Add your first account or try a different search term</p>
+            </div>
+          )}
+        </>
+      );
+
+      const ImportExportView = () => (
+        <>
+          <div className="header">
+            <h1>Import & Export</h1>
+          </div>
+
+          <div className="card">
+            <h2>Import Accounts</h2>
+            <p style={{ marginBottom: '1rem' }}>Import accounts from a JSON file</p>
+            <input
+              type="file"
+              accept=".json"
+              onChange={handleImport}
+              style={{ marginBottom: '1rem' }}
+            />
+            <p>Format: [{"name":"Site Name","email":"user@example.com","website":"https://example.com"}]</p>
+          </div>
+
+          <div className="card">
+            <h2>Export Accounts</h2>
+            <p style={{ marginBottom: '1rem' }}>Export all your accounts to a JSON file</p>
+            <button className="btn" onClick={exportData}>
+              <i className="fas fa-download"></i> Export Data
+            </button>
+          </div>
+        </>
+      );
+
+      // Main Component Rendering
+      return React.createElement(React.Fragment, null,
+        // Navbar
+        React.createElement("div", { className: "app-container" },
+          React.createElement("nav", { className: "navbar" },
+            React.createElement("div", { className: "navbar-logo" },
+              React.createElement("i", { className: "fas fa-shield-alt" }),
+              React.createElement("span", null, "Vaultix")
+            ),
+            React.createElement("div", { className: "nav-links" },
+              React.createElement("div", {
+                className: `nav-item ${activeView === 'dashboard' ? 'active' : ''}`,
+                onClick: () => setActiveView('dashboard')
+              },
+                React.createElement("i", { className: "fas fa-tachometer-alt" }),
+                React.createElement("span", null, "Dashboard")
+              ),
+              React.createElement("div", {
+                className: `nav-item ${activeView === 'importexport' ? 'active' : ''}`,
+                onClick: () => setActiveView('importexport')
+              },
+                React.createElement("i", { className: "fas fa-exchange-alt" }),
+                React.createElement("span", null, "Import & Export")
+              ),
+              React.createElement("div", {
+                className: "nav-item",
+                onClick: openSettings
+              },
+                React.createElement("i", { className: "fas fa-cog" }),
+                React.createElement("span", null, "Settings")
+              )
+            ),
+            React.createElement("div", { className: "user-section" },
+              React.createElement("div", { className: "nav-item" },
+                React.createElement("i", { className: "fas fa-user-circle" }),
+                React.createElement("span", null, "Admin")
+              )
+            )
+          ),
+
+          // Main Content
+          React.createElement("div", { className: "main-content" },
+            activeView === 'dashboard' && React.createElement(DashboardView),
+            activeView === 'importexport' && React.createElement(ImportExportView)
           )
         ),
-        React.createElement("button", { onClick: handleSave }, "💾 Save All")
+
+        // Toast Notification
+        toast.visible && React.createElement("div", { className: "toast show" },
+          React.createElement("i", { className: "fas fa-info-circle" }),
+          React.createElement("span", null, toast.message)
+        )
       );
     };
 
+    // Initialize app
     const root = ReactDOM.createRoot(document.getElementById("root"));
     root.render(React.createElement(App));
   </script>
 </body>
+
 </html>
