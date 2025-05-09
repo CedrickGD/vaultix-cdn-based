@@ -1,4 +1,3 @@
-<!-- index.html - Fixed Dashboard -->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -151,7 +150,8 @@
 
     /* Input & Button Styles */
     input,
-    select {
+    select,
+    textarea {
       width: 100%;
       padding: 12px 16px;
       border-radius: 10px;
@@ -163,13 +163,15 @@
     }
 
     input:focus,
-    select:focus {
+    select:focus,
+    textarea:focus {
       outline: none;
       border-color: var(--primary-light);
       background: rgba(255, 255, 255, 0.1);
     }
 
-    input::placeholder {
+    input::placeholder,
+    textarea::placeholder {
       color: rgba(255, 255, 255, 0.5);
     }
 
@@ -334,7 +336,12 @@
 <body>
   <div id="root"></div>
   <script>
-    const App = () => {
+    // Helper function to create class name strings with conditionals
+    function classNames() {
+      return Array.prototype.slice.call(arguments).filter(Boolean).join(' ');
+    }
+
+    function App() {
       const [activeView, setActiveView] = React.useState('dashboard');
       const [accounts, setAccounts] = React.useState([]);
       const [search, setSearch] = React.useState("");
@@ -349,264 +356,411 @@
       const [toast, setToast] = React.useState({ message: '', visible: false });
       const [showPassword, setShowPassword] = React.useState({});
 
-      React.useEffect(() => {
+      // Mock API for demo purposes
+      const mockAPI = {
+        get_data: function () {
+          try {
+            const stored = localStorage.getItem('vaultix_accounts');
+            return Promise.resolve(stored ? JSON.parse(stored) : []);
+          } catch (e) {
+            console.error("Error getting data:", e);
+            return Promise.resolve([]);
+          }
+        },
+        set_data: function (data) {
+          try {
+            localStorage.setItem('vaultix_accounts', JSON.stringify(data));
+            return Promise.resolve(true);
+          } catch (e) {
+            console.error("Error setting data:", e);
+            return Promise.resolve(false);
+          }
+        },
+        save_data: function () {
+          return Promise.resolve(true);
+        },
+        import_data: function (jsonData) {
+          try {
+            const data = JSON.parse(jsonData);
+            if (Array.isArray(data)) {
+              localStorage.setItem('vaultix_accounts', jsonData);
+              return Promise.resolve(true);
+            }
+            return Promise.resolve(false);
+          } catch (e) {
+            console.error("Error importing data:", e);
+            return Promise.resolve(false);
+          }
+        },
+        open_settings: function () {
+          alert('Settings functionality will be implemented in a future update.');
+          return Promise.resolve(true);
+        }
+      };
+
+      // Use our mock API instead of pywebview
+      const api = window.pywebview ? window.pywebview.api : mockAPI;
+
+      React.useEffect(function () {
         loadData();
       }, []);
 
-      const loadData = async () => {
-        try {
-          const data = await pywebview.api.get_data();
-          setAccounts(data);
-        } catch (error) {
-          showToast('Error loading data');
-        }
-      };
+      function loadData() {
+        api.get_data()
+          .then(function (data) {
+            setAccounts(data);
+          })
+          .catch(function (error) {
+            showToast('Error loading data');
+            console.error('Error loading data:', error);
+          });
+      }
 
-      const showToast = (message) => {
-        setToast({ message, visible: true });
-        setTimeout(() => setToast({ message: '', visible: false }), 3000);
-      };
+      function showToast(message) {
+        setToast({ message: message, visible: true });
+        setTimeout(function () {
+          setToast({ message: '', visible: false });
+        }, 3000);
+      }
 
-      const togglePasswordVisibility = (id) => {
-        setShowPassword(prev => ({
-          ...prev,
-          [id]: !prev[id]
-        }));
-      };
+      function togglePasswordVisibility(id) {
+        setShowPassword(function (prev) {
+          const newState = Object.assign({}, prev);
+          newState[id] = !prev[id];
+          return newState;
+        });
+      }
 
-      const handleAdd = async (e) => {
+      function handleAdd(e) {
         e.preventDefault();
         if (newAccount.name && newAccount.website) {
-          const updatedAccounts = [...accounts, { ...newAccount, id: Date.now() }];
+          const newAccountWithId = Object.assign({}, newAccount, { id: Date.now() });
+          const updatedAccounts = accounts.concat([newAccountWithId]);
+
           setAccounts(updatedAccounts);
-          await pywebview.api.set_data(updatedAccounts);
-          await pywebview.api.save_data();
-          setNewAccount({
-            name: "",
-            email: "",
-            website: "",
-            username: "",
-            password: "",
-            notes: ""
-          });
-          showToast('Account added successfully');
-        }
-      };
 
-      const handleDelete = async (index) => {
-        const updated = [...accounts];
+          api.set_data(updatedAccounts)
+            .then(function () {
+              return api.save_data();
+            })
+            .then(function () {
+              setNewAccount({
+                name: "",
+                email: "",
+                website: "",
+                username: "",
+                password: "",
+                notes: ""
+              });
+              showToast('Account added successfully');
+            })
+            .catch(function (error) {
+              showToast('Error saving account');
+              console.error('Error saving account:', error);
+            });
+        }
+      }
+
+      function handleDelete(index) {
+        const updated = accounts.slice();
         updated.splice(index, 1);
+
         setAccounts(updated);
-        await pywebview.api.set_data(updated);
-        await pywebview.api.save_data();
-        showToast('Account deleted');
-      };
 
-      const handleSave = async () => {
-        await pywebview.api.set_data(accounts);
-        const saved = await pywebview.api.save_data();
-        if (saved) {
-          showToast('All changes saved');
-        } else {
-          showToast('Error saving changes');
-        }
-      };
+        api.set_data(updated)
+          .then(function () {
+            return api.save_data();
+          })
+          .then(function () {
+            showToast('Account deleted');
+          })
+          .catch(function (error) {
+            showToast('Error deleting account');
+            console.error('Error deleting account:', error);
+          });
+      }
 
-      const handleImport = async (e) => {
+      function handleSave() {
+        api.set_data(accounts)
+          .then(function () {
+            return api.save_data();
+          })
+          .then(function (saved) {
+            if (saved) {
+              showToast('All changes saved');
+            } else {
+              showToast('Error saving changes');
+            }
+          })
+          .catch(function (error) {
+            showToast('Error saving changes');
+            console.error('Error saving changes:', error);
+          });
+      }
+
+      function handleImport(e) {
         const file = e.target.files[0];
         if (!file) return;
 
         const reader = new FileReader();
-        reader.onload = async () => {
-          try {
-            const success = await pywebview.api.import_data(reader.result);
-            if (success) {
-              const updated = await pywebview.api.get_data();
-              setAccounts(updated);
-              showToast('Data imported successfully');
-            } else {
-              showToast('Import failed. Invalid format');
-            }
-          } catch (error) {
-            showToast('Error importing data');
-          }
+        reader.onload = function () {
+          api.import_data(reader.result)
+            .then(function (success) {
+              if (success) {
+                return api.get_data().then(function (updated) {
+                  setAccounts(updated);
+                  showToast('Data imported successfully');
+                });
+              } else {
+                showToast('Import failed. Invalid format');
+              }
+            })
+            .catch(function (error) {
+              showToast('Error importing data');
+              console.error('Error importing data:', error);
+            });
         };
         reader.readAsText(file);
-      };
+      }
 
-      const exportData = () => {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(accounts));
-        const downloadAnchorNode = document.createElement('a');
-        downloadAnchorNode.setAttribute("href", dataStr);
-        downloadAnchorNode.setAttribute("download", "vaultix_export.json");
-        document.body.appendChild(downloadAnchorNode);
-        downloadAnchorNode.click();
-        downloadAnchorNode.remove();
-        showToast('Data exported');
-      };
+      function exportData() {
+        try {
+          const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(accounts));
+          const downloadAnchorNode = document.createElement('a');
+          downloadAnchorNode.setAttribute("href", dataStr);
+          downloadAnchorNode.setAttribute("download", "vaultix_export.json");
+          document.body.appendChild(downloadAnchorNode);
+          downloadAnchorNode.click();
+          downloadAnchorNode.remove();
+          showToast('Data exported');
+        } catch (error) {
+          showToast('Error exporting data');
+          console.error('Error exporting data:', error);
+        }
+      }
 
-      const openSettings = () => {
-        pywebview.api.open_settings();
-      };
+      function openSettings() {
+        api.open_settings();
+      }
 
-      const filtered = accounts.filter(a =>
-        a.name?.toLowerCase().includes(search.toLowerCase()) ||
-        a.email?.toLowerCase().includes(search.toLowerCase()) ||
-        a.website?.toLowerCase().includes(search.toLowerCase())
-      );
+      const filtered = accounts.filter(function (a) {
+        return (a.name && a.name.toLowerCase().includes(search.toLowerCase())) ||
+          (a.email && a.email.toLowerCase().includes(search.toLowerCase())) ||
+          (a.website && a.website.toLowerCase().includes(search.toLowerCase()));
+      });
 
-      // Views
-      const DashboardView = () => (
-        <>
-          <div className="header">
-            <h1>Dashboard</h1>
-            <button className="btn" onClick={handleSave}>
-              <i className="fas fa-save"></i> Save All Changes
-            </button>
-          </div>
+      // Dashboard View Component
+      function DashboardView() {
+        return React.createElement(React.Fragment, null,
+          React.createElement("div", { className: "header" },
+            React.createElement("h1", null, "Dashboard"),
+            React.createElement("button", {
+              className: "btn",
+              onClick: handleSave
+            },
+              React.createElement("i", { className: "fas fa-save" }),
+              " Save All Changes"
+            )
+          ),
 
-          <div className="search-area">
-            <div className="search-input">
-              <i className="fas fa-search"></i>
-              <input
-                type="text"
-                placeholder="Search accounts..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-              />
-            </div>
-            <button className="btn">
-              <i className="fas fa-filter"></i> Filter
-            </button>
-          </div>
+          React.createElement("div", { className: "search-area" },
+            React.createElement("div", { className: "search-input" },
+              React.createElement("i", { className: "fas fa-search" }),
+              React.createElement("input", {
+                type: "text",
+                placeholder: "Search accounts...",
+                value: search,
+                onChange: function (e) { setSearch(e.target.value); }
+              })
+            ),
+            React.createElement("button", { className: "btn" },
+              React.createElement("i", { className: "fas fa-filter" }),
+              " Filter"
+            )
+          ),
 
-          <div className="card">
-            <h2>Add New Account</h2>
-            <form className="account-form" onSubmit={handleAdd}>
-              <div>
-                <input
-                  placeholder="Site/App Name"
-                  value={newAccount.name}
-                  onChange={e => setNewAccount({ ...newAccount, name: e.target.value })}
-                  required
-                />
-              </div>
-              <div>
-                <input
-                  placeholder="Website URL"
-                  value={newAccount.website}
-                  onChange={e => setNewAccount({ ...newAccount, website: e.target.value })}
-                  required
-                />
-              </div>
-              <div>
-                <input
-                  placeholder="Email"
-                  type="email"
-                  value={newAccount.email}
-                  onChange={e => setNewAccount({ ...newAccount, email: e.target.value })}
-                />
-              </div>
-              <div>
-                <input
-                  placeholder="Username"
-                  value={newAccount.username}
-                  onChange={e => setNewAccount({ ...newAccount, username: e.target.value })}
-                />
-              </div>
-              <div>
-                <input
-                  placeholder="Password"
-                  type="password"
-                  value={newAccount.password}
-                  onChange={e => setNewAccount({ ...newAccount, password: e.target.value })}
-                />
-              </div>
-              <div className="form-full">
-                <button type="submit" className="btn btn-block">
-                  <i className="fas fa-plus-circle"></i> Add Account
-                </button>
-              </div>
-            </form>
-          </div>
+          React.createElement("div", { className: "card" },
+            React.createElement("h2", null, "Add New Account"),
+            React.createElement("form", {
+              className: "account-form",
+              onSubmit: handleAdd
+            },
+              React.createElement("div", null,
+                React.createElement("input", {
+                  placeholder: "Site/App Name",
+                  value: newAccount.name,
+                  onChange: function (e) {
+                    setNewAccount(Object.assign({}, newAccount, { name: e.target.value }));
+                  },
+                  required: true
+                })
+              ),
+              React.createElement("div", null,
+                React.createElement("input", {
+                  placeholder: "Website URL",
+                  value: newAccount.website,
+                  onChange: function (e) {
+                    setNewAccount(Object.assign({}, newAccount, { website: e.target.value }));
+                  },
+                  required: true
+                })
+              ),
+              React.createElement("div", null,
+                React.createElement("input", {
+                  placeholder: "Email",
+                  type: "email",
+                  value: newAccount.email,
+                  onChange: function (e) {
+                    setNewAccount(Object.assign({}, newAccount, { email: e.target.value }));
+                  }
+                })
+              ),
+              React.createElement("div", null,
+                React.createElement("input", {
+                  placeholder: "Username",
+                  value: newAccount.username,
+                  onChange: function (e) {
+                    setNewAccount(Object.assign({}, newAccount, { username: e.target.value }));
+                  }
+                })
+              ),
+              React.createElement("div", null,
+                React.createElement("input", {
+                  placeholder: "Password",
+                  type: "password",
+                  value: newAccount.password,
+                  onChange: function (e) {
+                    setNewAccount(Object.assign({}, newAccount, { password: e.target.value }));
+                  }
+                })
+              ),
+              React.createElement("div", { className: "form-full" },
+                React.createElement("textarea", {
+                  placeholder: "Notes",
+                  value: newAccount.notes,
+                  onChange: function (e) {
+                    setNewAccount(Object.assign({}, newAccount, { notes: e.target.value }));
+                  },
+                  rows: "3"
+                })
+              ),
+              React.createElement("div", { className: "form-full" },
+                React.createElement("button", {
+                  type: "submit",
+                  className: "btn btn-block"
+                },
+                  React.createElement("i", { className: "fas fa-plus-circle" }),
+                  " Add Account"
+                )
+              )
+            )
+          ),
 
-          <h2>Stored Accounts ({filtered.length})</h2>
+          React.createElement("h2", null, "Stored Accounts (", filtered.length, ")"),
 
-          {filtered.length > 0 ? (
-            filtered.map((acc, i) => (
-              <div className="card account-item" key={i}>
-                <div className="account-details">
-                  <div className="account-name">{acc.name}</div>
-                  <div className="account-meta">
-                    {acc.email && <div><i className="fas fa-envelope"></i> {acc.email}</div>}
-                    {acc.website && <div><i className="fas fa-globe"></i> {acc.website}</div>}
-                    {acc.username && <div><i className="fas fa-user"></i> {acc.username}</div>}
-                    {acc.password && (
-                      <div>
-                        <i className="fas fa-key"></i>
-                        {showPassword[i] ? acc.password : '••••••••'}
-                        <button
-                          className="btn btn-sm"
-                          onClick={() => togglePasswordVisibility(i)}
-                          style={{ marginLeft: '10px' }}
-                        >
-                          <i className={`fas ${showPassword[i] ? 'fa-eye-slash' : 'fa-eye'}`}></i>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="account-actions">
-                  <button className="btn btn-icon" title="Edit">
-                    <i className="fas fa-pencil-alt"></i>
-                  </button>
-                  <button
-                    className="btn btn-icon"
-                    onClick={() => handleDelete(i)}
-                    title="Delete"
-                  >
-                    <i className="fas fa-trash"></i>
-                  </button>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="empty-state">
-              <i className="fas fa-box-open"></i>
-              <h3>No accounts found</h3>
-              <p>Add your first account or try a different search term</p>
-            </div>
-          )}
-        </>
-      );
+          filtered.length > 0
+            ? filtered.map(function (acc, i) {
+              return React.createElement("div", {
+                className: "card account-item",
+                key: acc.id || i
+              },
+                React.createElement("div", { className: "account-details" },
+                  React.createElement("div", { className: "account-name" }, acc.name),
+                  React.createElement("div", { className: "account-meta" },
+                    acc.email && React.createElement("div", null,
+                      React.createElement("i", { className: "fas fa-envelope" }),
+                      " ", acc.email
+                    ),
+                    acc.website && React.createElement("div", null,
+                      React.createElement("i", { className: "fas fa-globe" }),
+                      " ", acc.website
+                    ),
+                    acc.username && React.createElement("div", null,
+                      React.createElement("i", { className: "fas fa-user" }),
+                      " ", acc.username
+                    ),
+                    acc.password && React.createElement("div", null,
+                      React.createElement("i", { className: "fas fa-key" }),
+                      " ", showPassword[acc.id || i] ? acc.password : '••••••••',
+                      React.createElement("button", {
+                        className: "btn btn-sm",
+                        onClick: function () { togglePasswordVisibility(acc.id || i); },
+                        style: { marginLeft: '10px' }
+                      },
+                        React.createElement("i", {
+                          className: "fas " + (showPassword[acc.id || i] ? 'fa-eye-slash' : 'fa-eye')
+                        })
+                      )
+                    ),
+                    acc.notes && React.createElement("div", null,
+                      React.createElement("i", { className: "fas fa-sticky-note" }),
+                      " ", acc.notes
+                    )
+                  )
+                ),
+                React.createElement("div", { className: "account-actions" },
+                  React.createElement("button", {
+                    className: "btn btn-icon",
+                    title: "Edit"
+                  },
+                    React.createElement("i", { className: "fas fa-pencil-alt" })
+                  ),
+                  React.createElement("button", {
+                    className: "btn btn-icon",
+                    onClick: function () { handleDelete(i); },
+                    title: "Delete"
+                  },
+                    React.createElement("i", { className: "fas fa-trash" })
+                  )
+                )
+              );
+            })
+            : React.createElement("div", { className: "empty-state" },
+              React.createElement("i", { className: "fas fa-box-open" }),
+              React.createElement("h3", null, "No accounts found"),
+              React.createElement("p", null, "Add your first account or try a different search term")
+            )
+        );
+      }
 
-      const ImportExportView = () => (
-        <>
-          <div className="header">
-            <h1>Import & Export</h1>
-          </div>
+      // Import/Export View Component
+      function ImportExportView() {
+        return React.createElement(React.Fragment, null,
+          React.createElement("div", { className: "header" },
+            React.createElement("h1", null, "Import & Export")
+          ),
 
-          <div className="card">
-            <h2>Import Accounts</h2>
-            <p style={{ marginBottom: '1rem' }}>Import accounts from a JSON file</p>
-            <input
-              type="file"
-              accept=".json"
-              onChange={handleImport}
-              style={{ marginBottom: '1rem' }}
-            />
-            <p>Format: [{"name":"Site Name","email":"user@example.com","website":"https://example.com"}]</p>
-          </div>
+          React.createElement("div", { className: "card" },
+            React.createElement("h2", null, "Import Accounts"),
+            React.createElement("p", { style: { marginBottom: '1rem' } },
+              "Import accounts from a JSON file"
+            ),
+            React.createElement("input", {
+              type: "file",
+              accept: ".json",
+              onChange: handleImport,
+              style: { marginBottom: '1rem' }
+            }),
+            React.createElement("p", null,
+              "Format: [{\"name\":\"Site Name\",\"email\":\"user@example.com\",\"website\":\"https://example.com\"}]"
+            )
+          ),
 
-          <div className="card">
-            <h2>Export Accounts</h2>
-            <p style={{ marginBottom: '1rem' }}>Export all your accounts to a JSON file</p>
-            <button className="btn" onClick={exportData}>
-              <i className="fas fa-download"></i> Export Data
-            </button>
-          </div>
-        </>
-      );
+          React.createElement("div", { className: "card" },
+            React.createElement("h2", null, "Export Accounts"),
+            React.createElement("p", { style: { marginBottom: '1rem' } },
+              "Export all your accounts to a JSON file"
+            ),
+            React.createElement("button", {
+              className: "btn",
+              onClick: exportData
+            },
+              React.createElement("i", { className: "fas fa-download" }),
+              " Export Data"
+            )
+          )
+        );
+      }
 
       // Main Component Rendering
       return React.createElement(React.Fragment, null,
@@ -619,15 +773,15 @@
             ),
             React.createElement("div", { className: "nav-links" },
               React.createElement("div", {
-                className: `nav-item ${activeView === 'dashboard' ? 'active' : ''}`,
-                onClick: () => setActiveView('dashboard')
+                className: classNames("nav-item", activeView === 'dashboard' ? 'active' : ''),
+                onClick: function () { setActiveView('dashboard'); }
               },
                 React.createElement("i", { className: "fas fa-tachometer-alt" }),
                 React.createElement("span", null, "Dashboard")
               ),
               React.createElement("div", {
-                className: `nav-item ${activeView === 'importexport' ? 'active' : ''}`,
-                onClick: () => setActiveView('importexport')
+                className: classNames("nav-item", activeView === 'importexport' ? 'active' : ''),
+                onClick: function () { setActiveView('importexport'); }
               },
                 React.createElement("i", { className: "fas fa-exchange-alt" }),
                 React.createElement("span", null, "Import & Export")
@@ -650,22 +804,34 @@
 
           // Main Content
           React.createElement("div", { className: "main-content" },
-            activeView === 'dashboard' && React.createElement(DashboardView),
-            activeView === 'importexport' && React.createElement(ImportExportView)
+            activeView === 'dashboard' ? React.createElement(DashboardView) : null,
+            activeView === 'importexport' ? React.createElement(ImportExportView) : null
           )
         ),
 
         // Toast Notification
-        toast.visible && React.createElement("div", { className: "toast show" },
+        toast.visible ? React.createElement("div", { className: "toast show" },
           React.createElement("i", { className: "fas fa-info-circle" }),
           React.createElement("span", null, toast.message)
-        )
+        ) : null
       );
-    };
+    }
 
     // Initialize app
-    const root = ReactDOM.createRoot(document.getElementById("root"));
-    root.render(React.createElement(App));
+    document.addEventListener('DOMContentLoaded', function () {
+      try {
+        ReactDOM.render(React.createElement(App), document.getElementById("root"));
+        console.log("App initialized successfully");
+      } catch (error) {
+        console.error("Error initializing app:", error);
+        // Fallback in case of error
+        document.getElementById("root").innerHTML =
+          "<div style='padding: 20px; color: white;'>" +
+          "<h1>Vaultix Dashboard</h1>" +
+          "<p>Error loading application. Please check the console for details.</p>" +
+          "</div>";
+      }
+    });
   </script>
 </body>
 
