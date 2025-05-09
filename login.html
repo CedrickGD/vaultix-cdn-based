@@ -271,6 +271,12 @@
       color: rgba(255, 255, 255, 0.4);
     }
 
+    .pw-hint {
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
     /* Animation for button */
     @keyframes pulse {
       0% {
@@ -318,13 +324,21 @@
         <span>Incorrect password</span>
       </div>
 
+      <div class="pw-hint">
+        Default password: "vaultix123"
+      </div>
+
       <div class="version">
-        Vaultix v2.0 | Secure Password Manager
+        Vaultix v2.1 | Secure Password Manager
       </div>
     </div>
   </div>
 
   <script>
+    // Track failed attempts and implement simple rate limiting
+    let failedAttempts = 0;
+    let lastAttemptTime = 0;
+
     async function checkPassword() {
       const pwInput = document.getElementById("pw");
       const loginBtn = document.getElementById("loginBtn");
@@ -338,6 +352,16 @@
         return;
       }
 
+      // Simple rate limiting
+      const now = Date.now();
+      if (failedAttempts >= 3 && (now - lastAttemptTime) < 3000) {
+        errorMsg.innerHTML = '<i class="fas fa-exclamation-triangle"></i><span>Too many attempts. Please wait a moment.</span>';
+        errorMsg.classList.add('show');
+        return;
+      }
+
+      lastAttemptTime = now;
+
       // Visual feedback
       loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Verifying...</span>';
       loginBtn.disabled = true;
@@ -346,6 +370,9 @@
         const ok = await pywebview.api.check_password(pw);
 
         if (ok) {
+          // Reset failed attempts on success
+          failedAttempts = 0;
+
           loginBtn.innerHTML = '<i class="fas fa-check"></i><span>Success!</span>';
           setTimeout(() => {
             pywebview.api.load_main();
@@ -357,6 +384,9 @@
           errorMsg.classList.add('show');
           pwInput.value = '';
           pwInput.focus();
+
+          // Increment failed attempts
+          failedAttempts++;
         }
       } catch (error) {
         loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i><span>Login</span>';
@@ -372,6 +402,11 @@
         event.preventDefault();
         checkPassword();
       }
+    });
+
+    // Clear error message when input changes
+    document.getElementById("pw").addEventListener("input", function () {
+      document.getElementById("error").classList.remove('show');
     });
   </script>
 </body>
