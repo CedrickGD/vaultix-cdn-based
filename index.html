@@ -1,0 +1,143 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Vaultix Dashboard</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #3a0ca3, #4361ee);
+      color: white;
+      padding: 20px;
+    }
+    h2 {
+      font-size: 2em;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .account, form {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(8px);
+      padding: 20px;
+      border-radius: 16px;
+      margin: 20px 0;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+    input, button {
+      padding: 10px;
+      margin: 5px;
+      font-size: 1em;
+      border-radius: 8px;
+      border: none;
+    }
+    input[type="text"], input[type="file"] {
+      width: calc(33% - 20px);
+    }
+    button {
+      background-color: #7209b7;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background-color: #5f0f40;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🔐 Vaultix Dashboard</h2>
+    <div id="root"></div>
+  </div>
+  <script>
+    const App = () => {
+      const [accounts, setAccounts] = React.useState([]);
+      const [search, setSearch] = React.useState("");
+      const [newAccount, setNewAccount] = React.useState({ name: "", email: "", website: "" });
+
+      React.useEffect(() => {
+        (async () => {
+          const data = await pywebview.api.get_data();
+          setAccounts(data);
+        })();
+      }, []);
+
+      const filtered = accounts.filter(a => a.name.toLowerCase().includes(search.toLowerCase()));
+
+      const handleAdd = () => {
+        if (newAccount.name) {
+          setAccounts([...accounts, newAccount]);
+          setNewAccount({ name: "", email: "", website: "" });
+        }
+      };
+
+      const handleDelete = (index) => {
+        const updated = [...accounts];
+        updated.splice(index, 1);
+        setAccounts(updated);
+      };
+
+      const handleSave = async () => {
+        await pywebview.api.set_data(accounts);
+        await pywebview.api.save_data();
+        alert("Changes saved.");
+      };
+
+      const handleImport = async (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = async () => {
+          await pywebview.api.import_data(reader.result);
+          const updated = await pywebview.api.get_data();
+          setAccounts(updated);
+        };
+        reader.readAsText(file);
+      };
+
+      return React.createElement("div", null,
+        React.createElement("button", { onClick: () => pywebview.api.open_settings() }, "⚙️ Settings"),
+        React.createElement("input", {
+          type: "file", accept: ".json", onChange: handleImport
+        }),
+        React.createElement("input", {
+          type: "text", placeholder: "Search...", value: search,
+          onChange: e => setSearch(e.target.value)
+        }),
+        React.createElement("form", { onSubmit: e => { e.preventDefault(); handleAdd(); }},
+          React.createElement("input", {
+            placeholder: "Name", value: newAccount.name,
+            onChange: e => setNewAccount({ ...newAccount, name: e.target.value })
+          }),
+          React.createElement("input", {
+            placeholder: "Email", value: newAccount.email,
+            onChange: e => setNewAccount({ ...newAccount, email: e.target.value })
+          }),
+          React.createElement("input", {
+            placeholder: "Website", value: newAccount.website,
+            onChange: e => setNewAccount({ ...newAccount, website: e.target.value })
+          }),
+          React.createElement("button", { type: "submit" }, "➕ Add")
+        ),
+        filtered.map((acc, i) =>
+          React.createElement("div", { className: "account", key: i },
+            React.createElement("strong", null, acc.name),
+            React.createElement("div", null, "Email: " + acc.email),
+            React.createElement("div", null, "Website: " + acc.website),
+            React.createElement("button", { onClick: () => handleDelete(i) }, "🗑 Delete")
+          )
+        ),
+        React.createElement("button", { onClick: handleSave }, "💾 Save All")
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(React.createElement(App));
+  </script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Vaultix Settings</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #3a0ca3, #4361ee);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 40px;
+      min-height: 100vh;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      width: 100%;
+      max-width: 500px;
+      backdrop-filter: blur(8px);
+    }
+    input, button {
+      padding: 12px;
+      margin-top: 12px;
+      width: 100%;
+      font-size: 1em;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+    }
+    input {
+      background: white;
+      color: black;
+    }
+    button {
+      background: #7209b7;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #5f0f40;
+    }
+    #msg {
+      margin-top: 10px;
+      color: #ccffcc;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>⚙️ Vaultix Settings</h2>
+    <label><input type="checkbox" id="tray" /> Enable Tray Icon</label><br />
+    <label><input type="checkbox" id="autostart" /> Enable Auto-Start</label><br />
+    <input type="password" id="newpass" placeholder="Change Master Password" />
+    <button onclick="save()">💾 Save Settings</button>
+    <p id="msg"></p>
+  </div>
+  <script>
+    async function save() {
+      const tray = document.getElementById("tray").checked;
+      const auto = document.getElementById("autostart").checked;
+      const pw = document.getElementById("newpass").value;
+      if (pw) await pywebview.api.change_password(pw);
+      await pywebview.api.set_tray(tray);
+      await pywebview.api.set_autostart(auto);
+      document.getElementById("msg").innerText = "Preferences saved!";
+    }
+  </script>
+</body>
+</html>
